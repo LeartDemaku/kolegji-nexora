@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import emailjs from '@emailjs/browser';
 import './index.css';
 
@@ -279,6 +279,48 @@ function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(' ');
 }
 
+function useInView(threshold = 0.12) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setInView(true); },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return [ref, inView] as const;
+}
+
+function useCountUp(target: number, duration = 2200, active = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      setCount(Math.round((1 - Math.pow(1 - p, 4)) * target));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [active, target, duration]);
+  return count;
+}
+
+function useMouseParallax() {
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const fn = (e: MouseEvent) =>
+      setPos({ x: (e.clientX / window.innerWidth - 0.5) * 2, y: (e.clientY / window.innerHeight - 0.5) * 2 });
+    window.addEventListener('mousemove', fn, { passive: true });
+    return () => window.removeEventListener('mousemove', fn);
+  }, []);
+  return pos;
+}
+
 function buildApplicationMailto(form: AdmissionForm, reference: string) {
   const subject = encodeURIComponent(`Aplikim i ri - ${collegeName} - ${reference}`);
   const body = encodeURIComponent(
@@ -341,8 +383,8 @@ function useHashNavigation() {
   return page;
 }
 
-function GlassCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cx('rounded-[1.75rem] border border-white/10 bg-white/5 shadow-xl shadow-slate-950/30 backdrop-blur-xl', className)}>{children}</div>;
+function GlassCard({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  return <div className={cx('rounded-[1.75rem] border border-white/10 bg-white/5 shadow-xl shadow-slate-950/30 backdrop-blur-xl', className)} style={style}>{children}</div>;
 }
 
 function Pill({ children }: { children: React.ReactNode }) {
@@ -427,127 +469,364 @@ function AppHeader({
   );
 }
 
+function TiltCard({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0, gx: 50, gy: 50, on: false });
+  function onMove(e: React.MouseEvent) {
+    const r = ref.current!.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    setTilt({ rx: (y - 0.5) * -14, ry: (x - 0.5) * 14, gx: x * 100, gy: y * 100, on: true });
+  }
+  function onLeave() { setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, on: false }); }
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      className={cx('relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 shadow-xl shadow-slate-950/30 backdrop-blur-xl', className)}
+      style={{
+        transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.on ? 1.025 : 1})`,
+        transition: tilt.on ? 'transform 0.08s ease' : 'transform 0.55s cubic-bezier(0.23,1,0.32,1)',
+        transformStyle: 'preserve-3d',
+        ...style,
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 rounded-[inherit] transition-opacity duration-300"
+        style={{ background: `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(56,189,248,0.14) 0%, rgba(139,92,246,0.08) 45%, transparent 70%)`, opacity: tilt.on ? 1 : 0 }}
+      />
+      {children}
+    </div>
+  );
+}
+
+function StatCount({ to, suffix = '', label, active }: { to: number; suffix?: string; label: string; active: boolean }) {
+  const n = useCountUp(to, 2200, active);
+  return (
+    <div className="flex flex-col items-center gap-3 px-4">
+      <div className="text-5xl font-bold text-white sm:text-6xl lg:text-7xl tabular-nums">
+        {n.toLocaleString()}{suffix}
+      </div>
+      <div className="h-px w-10 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+      <div className="text-center text-sm font-medium text-slate-400">{label}</div>
+    </div>
+  );
+}
+
+function MarqueeRow({ items, reverse = false }: { items: string[]; reverse?: boolean }) {
+  const doubled = [...items, ...items];
+  return (
+    <div className="relative overflow-hidden py-1">
+      <div className={reverse ? 'marquee-rev' : 'marquee-fwd'} style={{ display: 'flex', gap: '12px', width: 'max-content' }}>
+        {doubled.map((item, i) => (
+          <span key={i} className="flex-shrink-0 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 backdrop-blur-sm whitespace-nowrap">
+            {item}
+          </span>
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-slate-950 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-slate-950 to-transparent" />
+    </div>
+  );
+}
+
 function HomePage() {
+  const mouse = useMouseParallax();
+  const [statsRef, statsIn] = useInView(0.25);
+  const [featRef, featIn] = useInView(0.08);
+  const [bentoRef, bentoIn] = useInView(0.08);
+  const [ctaRef, ctaIn] = useInView(0.2);
+
+  const tech1 = ['Python', 'React', '.NET Core', 'Node.js', 'PostgreSQL', 'Docker', 'Kubernetes', 'TensorFlow', 'AWS', 'Redis', 'TypeScript', 'GraphQL'];
+  const tech2 = ['Swift iOS', 'Microservices', 'CI/CD', 'IoT', 'Machine Learning', 'Cybersecurity', 'Git', 'Linux', 'REST APIs', 'DevOps', 'Agile', 'Figma'];
+
   return (
     <>
-      <section id="ballina" className="mx-auto grid max-w-7xl items-center gap-14 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-2 lg:px-8 lg:pb-24 lg:pt-14">
-        <div>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200">
-            <Sparkles className="h-4 w-4" />
-            Kolegj i fokusuar vetëm në një degë akademike
-          </div>
-          <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Mëso Shkenca Kompjuterike në një kolegj të ndërtuar për rezultate reale.
-          </h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-            {collegeName} në {locationText} është konceptuar si një website i plotë për aplikim: program i vetëm bachelor, faqe të ndara, formularë funksionalë dhe përvojë mobile të rafinuar.
-          </p>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <a href={navHash('aplikimi')} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-100">
-              Fillo aplikimin
-              <ArrowRight className="h-4 w-4" />
-            </a>
-            <a href={navHash('programi')} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10">
-              Shiko programin
-              <ChevronRight className="h-4 w-4" />
-            </a>
-          </div>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {statistics.map((stat) => (
-              <GlassCard key={stat.label} className="p-4">
-                <div className="text-2xl font-semibold text-white">{stat.value}</div>
-                <div className="mt-1 text-sm text-slate-400">{stat.label}</div>
-              </GlassCard>
-            ))}
+      <section className="relative flex min-h-[calc(100svh-4.5rem)] flex-col justify-center overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
+        <div className="dot-grid-bg pointer-events-none absolute inset-0 -z-10" />
+        <div className="morph-blob pointer-events-none absolute -z-10 h-[520px] w-[520px] bg-cyan-500/18"
+          style={{ top: '5%', left: '10%', transform: `translate(${mouse.x * 38}px, ${mouse.y * 38}px)`, animationDuration: '16s' }} />
+        <div className="morph-blob pointer-events-none absolute -z-10 h-[400px] w-[400px] bg-violet-500/14"
+          style={{ top: '45%', right: '5%', transform: `translate(${mouse.x * -26}px, ${mouse.y * -26}px)`, animationDuration: '22s', animationDelay: '-7s' }} />
+        <div className="morph-blob pointer-events-none absolute -z-10 h-[280px] w-[280px] bg-emerald-500/12"
+          style={{ bottom: '8%', left: '28%', transform: `translate(${mouse.x * 18}px, ${mouse.y * 18}px)`, animationDuration: '19s', animationDelay: '-12s' }} />
+        <div className="scan-line pointer-events-none absolute inset-x-0 -z-10" />
+
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-10">
+            <div>
+              <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-cyan-400/25 bg-cyan-400/8 px-5 py-2.5 backdrop-blur-sm">
+                <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-70" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-400" />
+                </span>
+                <span className="text-sm font-medium text-cyan-200">Pranim aktiv · Vjeshtë 2026</span>
+              </div>
+
+              <h1 className="text-5xl font-bold leading-[1.07] tracking-tight text-white sm:text-6xl xl:text-7xl">
+                <span className="block">Ndërto të</span>
+                <span className="shimmer-text block">ardhmen tënde</span>
+                <span className="block">në teknologji.</span>
+              </h1>
+
+              <p className="mt-7 max-w-xl text-lg leading-8 text-slate-300">
+                {collegeName} — programi bachelor 3-vjeçar me fokus ekskluziv në Shkenca Kompjuterike, i ndërtuar për nxënësit që duan rezultate reale dhe karrierë solide.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-4">
+                <a href={navHash('aplikimi')}
+                  className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-white px-7 py-4 font-semibold text-slate-950 shadow-lg shadow-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-white/20">
+                  <span className="relative z-10 flex items-center gap-2.5">
+                    Fillo aplikimin
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-sky-100 via-white to-cyan-100 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                </a>
+                <a href={navHash('programi')}
+                  className="group inline-flex items-center gap-2.5 rounded-2xl border border-white/15 bg-white/6 px-7 py-4 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white/30 hover:bg-white/12 hover:-translate-y-0.5">
+                  Shiko programin
+                  <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+              </div>
+
+              <div className="mt-12 flex flex-wrap items-center gap-y-4">
+                {[{ v: '3', l: 'Vite bachelor' }, { v: '6', l: 'Semestra' }, { v: '26+', l: 'Lëndë totale' }, { v: '100%', l: 'Fokus IT' }].map((s, i) => (
+                  <div key={s.l} className="flex items-center">
+                    {i > 0 && <div className="mx-6 h-10 w-px bg-white/10" />}
+                    <div>
+                      <div className="text-2xl font-bold text-white">{s.v}</div>
+                      <div className="text-xs text-slate-400">{s.l}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative hidden lg:flex lg:items-center lg:justify-center">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="pulse-ring h-96 w-96" style={{ animationDelay: '0s' }} />
+                <div className="pulse-ring h-96 w-96" style={{ animationDelay: '1.6s' }} />
+                <div className="pulse-ring h-96 w-96" style={{ animationDelay: '3.2s' }} />
+              </div>
+
+              <div className="float-slow relative z-10 w-full max-w-sm"
+                style={{ transform: `translate(${mouse.x * -10}px, ${mouse.y * -10}px)` }}>
+                <GlassCard className="p-6">
+                  <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-cyan-300 text-slate-950">
+                      <GraduationCap className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-white">{collegeName}</div>
+                      <div className="text-xs text-slate-400">Shkenca Kompjuterike · Bachelor</div>
+                    </div>
+                    <div className="ml-auto flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-2.5 py-1">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                      <span className="text-xs text-emerald-300">Aktiv</span>
+                    </div>
+                  </div>
+                  <div className="mb-3 text-xs font-medium uppercase tracking-widest text-slate-500">Semestrat</div>
+                  <div className="space-y-2">
+                    {semesters.map((sem) => (
+                      <div key={sem.id} className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 px-3 py-2.5">
+                        <div className={`h-2 w-2 flex-shrink-0 rounded-full bg-gradient-to-br ${sem.color}`} />
+                        <span className="flex-1 text-sm text-slate-300">{sem.label}</span>
+                        <span className="text-xs text-slate-500">{sem.modules.length}</span>
+                        <div className="w-14 h-1 rounded-full bg-white/10 overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${sem.color}`} style={{ width: `${(sem.modules.length / 5) * 100}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex items-center justify-between border-t border-white/8 pt-4 text-xs text-slate-500">
+                    <span>6 semestra · 3 vite</span>
+                    <a href={navHash('programi')} className="text-cyan-400 transition-colors hover:text-cyan-300">Gjithë programi →</a>
+                  </div>
+                </GlassCard>
+              </div>
+
+              <div className="float-medium absolute -top-6 -right-2 z-20 w-48"
+                style={{ transform: `translate(${mouse.x * 16}px, ${mouse.y * 16}px)` }}>
+                <GlassCard className="p-4">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-400/20">
+                      <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
+                    </div>
+                    <span className="text-xs font-medium text-white">Punëzim</span>
+                  </div>
+                  <div className="text-3xl font-bold text-white">94<span className="text-base text-emerald-400">%</span></div>
+                  <div className="text-xs text-slate-400">norma e punësimit</div>
+                  <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full w-[94%] rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400" />
+                  </div>
+                </GlassCard>
+              </div>
+
+              <div className="float-slow-rev absolute -bottom-4 -left-4 z-20 w-52"
+                style={{ transform: `translate(${mouse.x * -16}px, ${mouse.y * -16}px)` }}>
+                <GlassCard className="p-4">
+                  <div className="mb-2.5 text-xs text-slate-400">Teknologjitë</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Python', 'React', '.NET', 'IoT', 'AI', 'Cloud', 'DevOps'].map(t => (
+                      <span key={t} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-slate-300">{t}</span>
+                    ))}
+                  </div>
+                </GlassCard>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute -left-6 -top-6 h-24 w-24 rounded-full bg-cyan-400/20 blur-2xl" />
-          <div className="absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-sky-500/20 blur-2xl" />
-          <GlassCard className="overflow-hidden">
-            <div className="border-b border-white/10 p-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm text-slate-400">Panel aplikimi</div>
-                  <div className="mt-1 text-2xl font-semibold text-white">Aplikim i qartë dhe i strukturuar</div>
+        <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-slate-500">
+          <span className="text-xs font-medium uppercase tracking-[0.28em]">Scroll</span>
+          <div className="bounce-y h-7 w-px bg-gradient-to-b from-slate-400/60 to-transparent" />
+        </div>
+      </section>
+
+      <div ref={statsRef} className="relative overflow-hidden border-y border-white/8 py-16 sm:py-20">
+        <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 via-violet-500/5 to-emerald-500/5" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            <StatCount to={3} suffix="+" label="Vite program bachelor" active={statsIn} />
+            <StatCount to={6} label="Semestra studimi" active={statsIn} />
+            <StatCount to={26} suffix="+" label="Lëndë të programit" active={statsIn} />
+            <StatCount to={100} suffix="%" label="Fokus ekskluziv IT" active={statsIn} />
+          </div>
+        </div>
+      </div>
+
+      <section ref={featRef} className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className={cx('max-w-2xl', featIn ? 'reveal-up' : 'opacity-0')}>
+          <div className="text-sm font-medium uppercase tracking-[0.22em] text-cyan-200/80">Pse Kolegji Nexora</div>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Ndërtuar për karrierë në teknologji</h2>
+          <p className="mt-4 text-base leading-7 text-slate-300">Çdo aspekt i programit është hartuar me qëllim: nga kurrikula deri tek mbështetja studentore.</p>
+        </div>
+        <div className="mt-12 grid gap-5 sm:grid-cols-2">
+          {features.map((feat, i) => {
+            const Icon = feat.icon;
+            return (
+              <TiltCard key={feat.title} className={featIn ? 'reveal-up' : 'opacity-0'} style={{ animationDelay: `${i * 110}ms` }}>
+                <div className="p-7">
+                  <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/20 to-sky-400/10 text-cyan-200">
+                    <Icon className="h-7 w-7" />
+                  </div>
+                  <div className="text-xl font-semibold text-white">{feat.title}</div>
+                  <div className="mt-2 text-sm leading-7 text-slate-400">{feat.description}</div>
                 </div>
-                <Pill>Regjistrim i hapur</Pill>
+              </TiltCard>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="overflow-hidden border-y border-white/8 py-10 space-y-3">
+        <MarqueeRow items={tech1} />
+        <MarqueeRow items={tech2} reverse />
+      </section>
+
+      <section ref={bentoRef} className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
+          <GlassCard className={cx('p-8 lg:col-span-2 lg:row-span-2', bentoIn ? 'reveal-up' : 'opacity-0')}>
+            <div className="flex h-full flex-col">
+              <div className="flex-1">
+                <div className="text-sm font-medium uppercase tracking-[0.22em] text-cyan-200/80">Misioni ynë</div>
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                  Shkenca kompjuterike e <span className="shimmer-text">ardhmes moderne</span>
+                </h2>
+                <p className="mt-5 text-base leading-7 text-slate-300">
+                  Programi është i fokusuar vetëm në një degë — Shkenca Kompjuterike — për t'u siguruar që çdo student merr kujdesin, cilësinë dhe njohjen që meriton.
+                </p>
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                  {['Fokus vetëm në Shkenca Kompjuterike', 'Program 3-vjeçar bachelor', 'Mësim praktik dhe laboratorik', 'Qendra aktive e karrierës', 'Bursa për sukses akademik', '94% norma e punësimit'].map(item => (
+                    <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 p-3.5 text-sm text-slate-200 transition hover:bg-white/5">
+                      <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-cyan-300" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3.5 text-sm text-slate-300">
-                  {degreeText} · {levelText}
-                </div>
-                <a href={navHash('pranimet')} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-400 px-5 py-3.5 font-semibold text-slate-950 transition hover:bg-sky-300">
-                  Kushtet e pranimit
-                  <ChevronRight className="h-4 w-4" />
+              <div className="mt-8 flex flex-wrap gap-3">
+                <a href={navHash('aplikimi')} className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-100">
+                  Apliko tani <ArrowRight className="h-4 w-4" />
+                </a>
+                <a href={navHash('programi')} className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                  Programi <ChevronRight className="h-4 w-4" />
                 </a>
               </div>
             </div>
-            <div className="grid gap-4 p-6">
-              {features.map((feature) => {
-                const Icon = feature.icon;
-                return (
-                  <div key={feature.title} className="rounded-3xl border border-white/10 bg-white/5 p-5 transition hover:bg-white/10">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-200">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <div className="text-lg font-semibold text-white">{feature.title}</div>
-                        <div className="mt-1 text-sm leading-6 text-slate-400">{feature.description}</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          </GlassCard>
+
+          <GlassCard className={cx('p-7', bentoIn ? 'reveal-up' : 'opacity-0')} style={{ animationDelay: '150ms' }}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-400/15 text-violet-200">
+              <Target className="h-6 w-6" />
             </div>
+            <div className="mt-4 text-xl font-semibold text-white">Cilësi akademike</div>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Curriculum i hartuar me sektorin e teknologjisë dhe ekspertëve akademikë, i orientuar drejt tregut real të punës.</p>
+          </GlassCard>
+
+          <GlassCard className={cx('p-7', bentoIn ? 'reveal-up' : 'opacity-0')} style={{ animationDelay: '280ms' }}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-200">
+              <Briefcase className="h-6 w-6" />
+            </div>
+            <div className="mt-4 text-xl font-semibold text-white">Karrierë e sigurt</div>
+            <p className="mt-2 text-sm leading-6 text-slate-400">94% e të diplomuarve gjejnë punë brenda 6 muajve me mbështetje aktive nga Qendra jonë e Karrierës.</p>
           </GlassCard>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-3">
-          <GlassCard className="p-7 lg:col-span-2">
-            <SectionHeading
-              eyebrow="Pse ky projekt"
-              title="I ndërtuar si website real i një institucioni arsimor"
-              description="Kjo strukturë e bën faqen të duket profesionale: sekcione të dallueshme, navigim i qartë dhe përmbajtje e organizuar për përdoruesit që kërkojnë informacion të shpejtë dhe të besueshëm."
-            />
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              {[
-                'Fokus vetëm në Shkenca Kompjuterike',
-                'Program 3-vjeçar bachelor',
-                'Faqe të veçanta për secilin qëllim',
-                'Përshtatur për ekranet mobile',
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-slate-200">
-                  <CheckCircle2 className="h-5 w-5 text-cyan-200" />
-                  {item}
+      <section className="border-y border-white/8 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center">
+            <div className="text-sm font-medium uppercase tracking-[0.22em] text-cyan-200/80">Jeta studentore</div>
+            <h2 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">Gjithçka për suksesin tënd</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {studentServices.map((s, i) => {
+              const icons = [BookOpen, Briefcase, LibraryBig, Users];
+              const Icon = icons[i % 4];
+              return (
+                <div key={s.title} className="group flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07] hover:-translate-y-1">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400/20 to-cyan-400/10 text-cyan-200 transition-transform duration-300 group-hover:scale-110">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-white">{s.title}</div>
+                    <div className="mt-1.5 text-sm leading-6 text-slate-400">{s.text}</div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </GlassCard>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-          <GlassCard className="p-7">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-200">
-                <Star className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-white">Misioni</div>
-                <div className="text-sm text-slate-400">Bachelor i fokusuar</div>
-              </div>
-            </div>
-            <p className="mt-5 text-sm leading-6 text-slate-300">
-              Të përgatisë studentë me bazë të fortë në programim, databaza, rrjete dhe zhvillim aplikacionesh moderne, të gatshëm për tregun e punës.
+      <section ref={ctaRef} className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className={cx('relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-sky-500/12 via-violet-500/8 to-emerald-500/10 p-10 text-center sm:p-16', ctaIn ? 'scale-in' : 'opacity-0')}>
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="dot-grid-bg opacity-40" />
+          </div>
+          <div className="morph-blob absolute -z-10 h-64 w-64 bg-sky-500/18" style={{ top: '-10%', left: '15%', animationDuration: '14s' }} />
+          <div className="morph-blob absolute -z-10 h-48 w-48 bg-violet-500/16" style={{ bottom: '-10%', right: '15%', animationDuration: '17s', animationDelay: '-9s' }} />
+          <div className="relative">
+            <div className="mb-2 text-sm font-medium uppercase tracking-[0.22em] text-cyan-300/80">Fillo sot</div>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">Gati të bësh hapin e parë?</h2>
+            <p className="mx-auto mt-5 max-w-xl text-lg text-slate-300">
+              Apliko për Bachelor në Shkenca Kompjuterike dhe ndërto karrierën tënde me {collegeName}.
             </p>
-            <div className="mt-5 space-y-3 text-sm text-slate-300">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Mësim praktik dhe laboratorik</div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Përvojë akademike e qartë</div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Dizajn modern dhe i lexueshëm</div>
+            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <a href={navHash('aplikimi')}
+                className="group inline-flex items-center gap-2.5 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-slate-950 shadow-xl shadow-white/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-white/20">
+                Fillo aplikimin
+                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </a>
+              <a href={navHash('kontakt')}
+                className="inline-flex items-center gap-2.5 rounded-2xl border border-white/20 bg-white/8 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:border-white/35 hover:bg-white/15 hover:-translate-y-0.5">
+                Na kontakto
+                <Mail className="h-5 w-5" />
+              </a>
             </div>
-          </GlassCard>
+          </div>
         </div>
       </section>
     </>
@@ -1265,13 +1544,106 @@ export default function App() {
           color: white;
           outline: none;
         }
-        .input-field::placeholder {
-          color: rgb(100 116 139);
-        }
+        .input-field::placeholder { color: rgb(100 116 139); }
         .input-field:focus {
           border-color: rgba(56, 189, 248, 0.55);
           box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
         }
+
+        @keyframes morph-shape {
+          0%,100% { border-radius: 62% 38% 46% 54% / 60% 44% 56% 40%; }
+          25%      { border-radius: 40% 60% 70% 30% / 45% 65% 35% 55%; }
+          50%      { border-radius: 54% 46% 38% 62% / 34% 56% 44% 66%; }
+          75%      { border-radius: 38% 62% 54% 46% / 66% 34% 66% 34%; }
+        }
+        @keyframes float-y {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(-14px); }
+        }
+        @keyframes float-y-rev {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(10px); }
+        }
+        @keyframes shimmer-gradient {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes scan-down {
+          0%   { top: -3px; opacity: 0; }
+          5%   { opacity: 1; }
+          95%  { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
+        }
+        @keyframes pulse-out {
+          0%   { transform: scale(0.8); opacity: 0.6; }
+          100% { transform: scale(2.4); opacity: 0; }
+        }
+        @keyframes bounce-y {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(7px); }
+        }
+        @keyframes reveal-up {
+          from { opacity: 0; transform: translateY(34px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes marquee-left {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        @keyframes marquee-right {
+          from { transform: translateX(-50%); }
+          to   { transform: translateX(0); }
+        }
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.94); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes grid-pulse {
+          0%,100% { opacity: 0.035; }
+          50%      { opacity: 0.08; }
+        }
+
+        .dot-grid-bg {
+          position: absolute; inset: 0;
+          background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+          background-size: 30px 30px;
+          animation: grid-pulse 7s ease-in-out infinite;
+        }
+        .morph-blob {
+          border-radius: 62% 38% 46% 54% / 60% 44% 56% 40%;
+          filter: blur(72px);
+          animation: morph-shape 15s ease-in-out infinite;
+          will-change: transform, border-radius;
+        }
+        .shimmer-text {
+          background: linear-gradient(110deg, #7dd3fc 0%, #38bdf8 22%, #e0f2fe 44%, #38bdf8 66%, #7dd3fc 88%, #a5f3fc 100%);
+          background-size: 280% 280%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: shimmer-gradient 5s ease infinite;
+        }
+        .scan-line {
+          position: absolute; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, transparent 0%, rgba(56,189,248,0.5) 50%, transparent 100%);
+          animation: scan-down 9s linear infinite;
+          pointer-events: none;
+        }
+        .float-slow     { animation: float-y     6.5s ease-in-out infinite; }
+        .float-medium   { animation: float-y     4.2s ease-in-out infinite; animation-delay: -2.1s; }
+        .float-slow-rev { animation: float-y-rev 5.5s ease-in-out infinite; animation-delay: -1.3s; }
+        .bounce-y       { animation: bounce-y 2.2s ease-in-out infinite; }
+        .pulse-ring {
+          position: absolute;
+          border-radius: 9999px;
+          border: 1px solid rgba(56,189,248,0.25);
+          animation: pulse-out 4s ease-out infinite;
+        }
+        .reveal-up  { animation: reveal-up 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+        .scale-in   { animation: scale-in 0.65s cubic-bezier(0.16,1,0.3,1) both; }
+        .marquee-fwd { animation: marquee-left  26s linear infinite; }
+        .marquee-rev { animation: marquee-right 32s linear infinite; }
       `}</style>
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.20),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.14),_transparent_28%),linear-gradient(180deg,_rgba(2,6,23,0.98)_0%,_rgba(15,23,42,1)_55%,_rgba(2,6,23,1)_100%)]" />
