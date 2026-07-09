@@ -1167,7 +1167,6 @@ function AplikimiPage() {
               <input value={form.mesatarja} onChange={(e) => update('mesatarja', e.target.value)} placeholder="Mesatarja e notave" className="input-field" />
               <select value={form.semestri} onChange={(e) => update('semestri', e.target.value)} className="input-field">
                 <option>Vjeshtë 2026</option>
-                <option>Pranverë 2027</option>
                 <option>Vjeshtë 2027</option>
               </select>
             </div>
