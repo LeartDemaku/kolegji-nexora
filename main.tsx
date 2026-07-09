@@ -590,17 +590,6 @@ function HomePage() {
                 </a>
               </div>
 
-              <div className="mt-12 flex flex-wrap items-center gap-y-4">
-                {[{ v: '3', l: 'Vite bachelor' }, { v: '6', l: 'Semestra' }, { v: '26+', l: 'Lëndë totale' }, { v: '100%', l: 'Fokus IT' }].map((s, i) => (
-                  <div key={s.l} className="flex items-center">
-                    {i > 0 && <div className="mx-6 h-10 w-px bg-white/10" />}
-                    <div>
-                      <div className="text-2xl font-bold text-white">{s.v}</div>
-                      <div className="text-xs text-slate-400">{s.l}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="relative hidden lg:flex lg:items-center lg:justify-center">
@@ -653,7 +642,7 @@ function HomePage() {
                     <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-400/20">
                       <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
                     </div>
-                    <span className="text-xs font-medium text-white">Punëzim</span>
+                    <span className="text-xs font-medium text-white">Punësim</span>
                   </div>
                   <div className="text-3xl font-bold text-white">94<span className="text-base text-emerald-400">%</span></div>
                   <div className="text-xs text-slate-400">norma e punësimit</div>
