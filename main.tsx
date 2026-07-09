@@ -41,9 +41,12 @@ type PageKey =
   | 'jeta-studentore'
   | 'kontakt';
 
-type ProgramYear = {
-  year: string;
-  title: string;
+type Semester = {
+  id: string;
+  label: string;
+  subtitle: string;
+  color: string;
+  glow: string;
   modules: string[];
 };
 
@@ -122,21 +125,54 @@ const features: Feature[] = [
   },
 ];
 
-const programYears: ProgramYear[] = [
+const semesters: Semester[] = [
   {
-    year: 'Viti I',
-    title: 'Bazat e disiplinës',
-    modules: ['Hyrje në Programim', 'Matematikë diskrete', 'Sisteme operative', 'Bazat e databazave', 'Gjuhë Angleze për IT'],
+    id: 'sem1',
+    label: 'Semestri I',
+    subtitle: 'Themelet e programimit',
+    color: 'from-sky-400 to-cyan-300',
+    glow: 'shadow-sky-500/20',
+    modules: ['Hyrje në Programim', 'Matematikë Diskrete', 'Bazat e Databazave'],
   },
   {
-    year: 'Viti II',
-    title: 'Ndërtimi i aftësive profesionale',
-    modules: ['Algoritmet dhe Struktura e të dhënave', 'Rrjete kompjuterike', 'Zhvillim në web', 'Inxhinieri softuerike', 'Programimi i Orientuar në Objekte (POO)', 'Çështje Legale dhe Etike në IT'],
+    id: 'sem2',
+    label: 'Semestri II',
+    subtitle: 'Aftësi teknike themelore',
+    color: 'from-cyan-400 to-teal-300',
+    glow: 'shadow-cyan-500/20',
+    modules: ['Sisteme Operative', 'Gjuhë Angleze për IT', 'Algoritmet dhe Strukturat e të Dhënave', 'Programimi i Orientuar në Objekte (POO)', 'Zhvillim në Web'],
   },
   {
-    year: 'Viti III',
-    title: 'Specializim dhe diplomim',
-    modules: ['Inteligjencë artificiale', 'Siguri kibernetike', 'Testim i Softuerit', 'Cloud fundamentals', 'Internet of Things (IoT)', 'Menaxhim projekti', 'Diplomë finale'],
+    id: 'sem3',
+    label: 'Semestri III',
+    subtitle: 'Inxhinieri dhe rrjete',
+    color: 'from-teal-400 to-emerald-300',
+    glow: 'shadow-teal-500/20',
+    modules: ['Inxhinieri Softuerike', 'Rrjete Kompjuterike', 'Çështje Legale dhe Etike në IT', 'Cloud Fundamentals', 'Menaxhim Projekti'],
+  },
+  {
+    id: 'sem4',
+    label: 'Semestri IV',
+    subtitle: 'Teknologji të avancuara',
+    color: 'from-violet-400 to-purple-300',
+    glow: 'shadow-violet-500/20',
+    modules: ['Inteligjencë Artificiale', 'Siguri Kibernetike', 'Testimi dhe Analiza e Softuerit', 'Internet of Things (IoT)', 'Programimi i Aplikacioneve Mobile iOS'],
+  },
+  {
+    id: 'sem5',
+    label: 'Semestri V',
+    subtitle: 'Specializim profesional',
+    color: 'from-orange-400 to-amber-300',
+    glow: 'shadow-orange-500/20',
+    modules: ['Programimi me .NET Core', 'Programimi me Python', 'Programimi Biznesor Analitik', 'DevOps dhe CI/CD', 'Arkitektura e Mikroshërbimeve (Microservices Architecture)'],
+  },
+  {
+    id: 'sem6',
+    label: 'Semestri VI',
+    subtitle: 'Praktika dhe diplomimi',
+    color: 'from-rose-400 to-pink-300',
+    glow: 'shadow-rose-500/20',
+    modules: ['Punë Praktike (Internship)', 'Projekti i Diplomës (Capstone Project)', 'Zhvillimi i Aplikacioneve Cloud-Native'],
   },
 ];
 
@@ -518,82 +554,160 @@ function HomePage() {
   );
 }
 
+function SemesterCard({ sem, index, isOpen, onToggle }: { sem: Semester; index: number; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div
+      className="rounded-3xl border border-white/10 bg-white/[0.03] overflow-hidden transition-all duration-300"
+      style={{ boxShadow: isOpen ? '0 0 0 1px rgba(255,255,255,0.07), 0 8px 32px rgba(0,0,0,0.35)' : undefined }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-4 px-5 py-4 sm:px-6 sm:py-5 text-left group transition-colors hover:bg-white/[0.04]"
+      >
+        <div className={`flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${sem.color} shadow-lg ${sem.glow} text-slate-900 font-bold text-sm`}>
+          {index + 1}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`text-xs font-semibold uppercase tracking-[0.2em] bg-gradient-to-r ${sem.color} bg-clip-text text-transparent`}>{sem.label}</div>
+          <div className="mt-0.5 text-base sm:text-lg font-semibold text-white truncate">{sem.subtitle}</div>
+        </div>
+        <div className="flex-shrink-0 flex items-center gap-3">
+          <span className="hidden sm:inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+            {sem.modules.length} lëndë
+          </span>
+          <div className={`flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 5l4.5 4 4.5-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </div>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <div className="h-px w-full bg-white/[0.07] mb-4" />
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {sem.modules.map((mod, i) => (
+              <div
+                key={mod}
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-slate-200 transition hover:bg-white/[0.06]"
+                style={{ animationDelay: `${i * 40}ms` }}
+              >
+                <div className={`flex-shrink-0 h-2 w-2 rounded-full bg-gradient-to-br ${sem.color}`} />
+                {mod}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProgramPage() {
+  const [openSem, setOpenSem] = useState<string | null>('sem1');
+
+  const totalModules = semesters.reduce((acc, s) => acc + s.modules.length, 0);
+
   return (
     <section id="programi" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <SectionHeading
         eyebrow="Programi akademik"
         title="Bachelor në Shkenca Kompjuterike"
-        description="Programi është i vetëm, i thelluar dhe i ndërtuar për 3 vite studime me fokus në aftësi praktike, mendim analitik dhe ndërtim sistemesh moderne."
+        description="Programi 3-vjeçar bachelor i organizuar në 6 semestra, me progresion të qartë nga bazat deri tek specializimi dhe diplomimi."
       />
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <GlassCard className="p-7 lg:col-span-2">
-          <div className="grid gap-4">
-            {programYears.map((year) => (
-              <div key={year.year} className="rounded-3xl border border-white/10 bg-slate-950/50 p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">{year.year}</div>
-                    <div className="mt-1 text-xl font-semibold text-white">{year.title}</div>
-                  </div>
-                  <Pill>{durationText}</Pill>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {year.modules.map((module) => (
-                    <div
-                      key={module}
-                      className={module === 'Diplomë finale' ? 'inline-flex items-center rounded-full border-2 border-yellow-400/60 bg-yellow-400/15 px-3 py-1 text-xs font-semibold text-yellow-200' : ''}
-                    >
-                      {module === 'Diplomë finale' ? (
-                        <span>{module}</span>
-                      ) : (
-                        <Pill>{module}</Pill>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <GlassCard className="p-5 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-400/10 text-sky-200">
+            <BookOpen className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">{totalModules}</div>
+            <div className="text-sm text-slate-400">lëndë gjithsej</div>
           </div>
         </GlassCard>
+        <GlassCard className="p-5 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-400/10 text-violet-200">
+            <CalendarDays className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">6</div>
+            <div className="text-sm text-slate-400">semestra studimi</div>
+          </div>
+        </GlassCard>
+        <GlassCard className="p-5 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-200">
+            <GraduationCap className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-white">Bachelor</div>
+            <div className="text-sm text-slate-400">diplomë zyrtare</div>
+          </div>
+        </GlassCard>
+      </div>
 
-        <div className="grid gap-6">
-          <GlassCard className="p-7">
+      <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="grid gap-3">
+          {semesters.map((sem, index) => (
+            <SemesterCard
+              key={sem.id}
+              sem={sem}
+              index={index}
+              isOpen={openSem === sem.id}
+              onToggle={() => setOpenSem(openSem === sem.id ? null : sem.id)}
+            />
+          ))}
+        </div>
+
+        <div className="grid gap-4 lg:gap-5 content-start">
+          <GlassCard className="p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-400/10 text-sky-200">
                 <Layers3 className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-lg font-semibold text-white">Rezultatet e të nxënit</div>
-                <div className="text-sm text-slate-400">Aftësitë kryesore</div>
+                <div className="text-base font-semibold text-white">Rezultatet e të nxënit</div>
+                <div className="text-xs text-slate-400">Aftësitë kryesore</div>
               </div>
             </div>
-            <div className="mt-5 space-y-3 text-sm text-slate-300">
+            <div className="mt-4 grid gap-2 text-sm text-slate-300">
               {outcomes.map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-300" />
                   {item}
                 </div>
               ))}
             </div>
           </GlassCard>
 
-          <GlassCard className="p-7">
+          <GlassCard className="p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-200">
                 <LibraryBig className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-lg font-semibold text-white">Vlerësimi</div>
-                <div className="text-sm text-slate-400">Si matet suksesi</div>
+                <div className="text-base font-semibold text-white">Vlerësimi</div>
+                <div className="text-xs text-slate-400">Si matet suksesi</div>
               </div>
             </div>
-            <div className="mt-5 space-y-3 text-sm text-slate-300">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Detyra laboratorike</div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Projekte semestrale</div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Ekzaminime dhe prezantime</div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">Diplomë finale</div>
+            <div className="mt-4 grid gap-2 text-sm text-slate-300">
+              {['Detyra laboratorike', 'Projekte semestrale', 'Ekzaminime dhe prezantime', 'Diplomë finale'].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">{item}</div>
+              ))}
             </div>
+          </GlassCard>
+
+          <GlassCard className="p-6 bg-gradient-to-br from-sky-500/10 to-violet-500/10">
+            <div className="text-sm font-semibold text-white mb-3">Shpërndarja sipas viteve</div>
+            {[['Viti I', 'sem1', 'sem2'], ['Viti II', 'sem3', 'sem4'], ['Viti III', 'sem5', 'sem6']].map(([label, s1, s2]) => {
+              const count = semesters.filter(s => s.id === s1 || s.id === s2).reduce((a, s) => a + s.modules.length, 0);
+              return (
+                <div key={label} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 mb-2 text-sm">
+                  <span className="text-slate-300">{label}</span>
+                  <span className="font-semibold text-white">{count} lëndë</span>
+                </div>
+              );
+            })}
           </GlassCard>
         </div>
       </div>
