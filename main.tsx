@@ -1997,34 +1997,131 @@ function ContactPage() {
 
 function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-slate-950/80">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-300 text-slate-950">
+    <footer className="relative overflow-hidden border-t border-white/10 bg-slate-950/90 pt-16 pb-12">
+      {/* Ambient Glow Background */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="dot-grid-bg opacity-30" />
+        <div className="morph-blob absolute -bottom-20 left-1/4 h-80 w-80 bg-sky-500/10 blur-3xl" />
+        <div className="morph-blob absolute -top-20 right-1/4 h-80 w-80 bg-pink-500/10 blur-3xl" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          {/* Column 1: Brand & Identity */}
+          <div className="space-y-4 sm:col-span-2 lg:col-span-1">
+            <a href={navHash('ballina')} className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-300 text-slate-950 font-bold shadow-lg shadow-sky-500/20">
                 <GraduationCap className="h-6 w-6" />
               </div>
               <div>
-                <div className="text-lg font-semibold text-white">{collegeName}</div>
-                <div className="text-sm text-slate-400">3 Fusha Studimi Bachelor: Shkenca Kompjuterike · Dizajn Grafik · Marketing</div>
+                <div className="text-xl font-bold tracking-tight text-white">{collegeName}</div>
+                <div className="text-xs text-slate-400">Institucion i arsimit të lartë</div>
+              </div>
+            </a>
+
+            <p className="text-sm leading-6 text-slate-400">
+              Kolegji Nexora përgatit gjeneratën e re të profesionistëve në 3 fusha kryesore digjitale: Programim Softuerik, Dizajn UI/UX dhe Marketing Strategjik me nga 26 lëndë akademike secila.
+            </p>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-200">
+                3 Vite Bachelor
+              </span>
+              <span className="rounded-full border border-pink-400/25 bg-pink-400/10 px-3 py-1 text-xs font-semibold text-pink-200">
+                78 Lëndë Gjithsej
+              </span>
+            </div>
+          </div>
+
+          {/* Column 2: Navigation Links */}
+          <div>
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+              Navigimi
+            </h4>
+            <ul className="space-y-2.5 text-sm text-slate-400">
+              {navigation.map((item) => (
+                <li key={item.key}>
+                  <a
+                    href={navHash(item.key)}
+                    className="inline-flex items-center gap-2 transition hover:text-cyan-300 hover:translate-x-1 duration-200"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 3: 3 Study Fields */}
+          <div>
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-pink-400" />
+              Programet Bachelor
+            </h4>
+            <ul className="space-y-3 text-sm">
+              {studyPrograms.map((prog) => {
+                const Icon = prog.icon;
+                return (
+                  <li key={prog.id}>
+                    <a
+                      href={`${navHash('programi')}?fusha=${prog.id}`}
+                      className="group flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-2.5 transition hover:border-white/20 hover:bg-white/10"
+                    >
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${prog.gradient} text-slate-950 font-bold`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-white group-hover:text-cyan-300 transition-colors truncate">{prog.title}</div>
+                        <div className="text-[10px] text-slate-400">26 Lëndë · 3 Vite</div>
+                      </div>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Column 4: Contact & Location Info */}
+          <div>
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+              Kontakt & Lokacioni
+            </h4>
+            <div className="space-y-3 text-sm text-slate-400">
+              <div className="flex items-start gap-3 rounded-xl border border-white/8 bg-white/5 p-3">
+                <MapPin className="mt-0.5 h-4 w-4 text-cyan-400 flex-shrink-0" />
+                <span className="text-xs leading-5">Rruga e Inovacionit 12, Prishtinë, Kosovë</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3">
+                <Phone className="h-4 w-4 text-cyan-400 flex-shrink-0" />
+                <span className="text-xs">+383 44 123 456</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/5 p-3">
+                <Mail className="h-4 w-4 text-cyan-400 flex-shrink-0" />
+                <span className="text-xs truncate">{recipientEmail}</span>
               </div>
             </div>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
-              Kolegji Nexora përgatit gjeneratën e re të profesionistëve në programim softuerik, dizajn digjital UI/UX dhe marketing strategjik me nga 26 lëndë të certifikuara për secilën fushë.
-            </p>
-          </div>
-          <div className="grid gap-3 text-sm text-slate-400 sm:grid-cols-2">
-            {navigation.map((item) => (
-              <a key={item.key} href={navHash(item.key)} className="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10 hover:text-white">
-                {item.label}
-              </a>
-            ))}
           </div>
         </div>
-        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <div>© 2026 {collegeName}. Të gjitha të drejtat e rezervuara.</div>
-          <div>{locationText}</div>
+
+        {/* Bottom Bar */}
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center justify-between gap-4 text-xs text-slate-500 sm:flex-row">
+          <div className="flex items-center gap-2 text-center sm:text-left">
+            <span>© 2026 {collegeName}. Të gjitha të drejtat e rezervuara.</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-slate-400">
+            <a href={navHash('pranimet')} className="hover:text-white transition">Kriteret</a>
+            <span>·</span>
+            <a href={navHash('tarifat')} className="hover:text-white transition">Tarifat</a>
+            <span>·</span>
+            <a href={navHash('aplikimi')} className="hover:text-white transition">Aplikimi Online</a>
+          </div>
+          <div className="flex items-center gap-1.5 text-slate-400">
+            <span>Prishtinë, Kosovë</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          </div>
         </div>
       </div>
     </footer>
