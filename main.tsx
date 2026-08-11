@@ -819,19 +819,6 @@ function HomePage() {
                 </GlassCard>
               </div>
 
-              <div className="float-medium absolute -top-6 -right-2 z-20 w-48"
-                style={{ transform: `translate(${mouse.x * 16}px, ${mouse.y * 16}px)` }}>
-                <GlassCard className="p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-400/20">
-                      <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
-                    </div>
-                    <span className="text-xs font-medium text-white">Suksesi</span>
-                  </div>
-                  <div className="text-3xl font-bold text-white">78<span className="text-base text-cyan-400"> lëndë</span></div>
-                  <div className="text-xs text-slate-400">kurrikulë e përditësuar</div>
-                </GlassCard>
-              </div>
             </div>
           </div>
         </div>
