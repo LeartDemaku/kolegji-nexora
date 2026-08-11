@@ -1430,45 +1430,42 @@ function AplikimiPage() {
       form.mesazhi || 'Aplikim i ri për ' + fushaTitle,
     ].join('\n');
 
+    const templateParams = {
+      emri: form.emri,
+      mbiemri: form.mbiemri,
+      email: form.email,
+      telefoni: form.telefoni,
+      qyteti: form.qyteti,
+      shkolla: form.shkolla,
+      mesatarja: form.mesatarja,
+      fusha: fushaTitle,
+      fushaTitle: fushaTitle,
+      fusha_studimit: fushaTitle,
+      programi: fushaTitle,
+      programi_studimit: fushaTitle,
+      drejtimi: fushaTitle,
+      drejtim: fushaTitle,
+      dega: fushaTitle,
+      degë: fushaTitle,
+      degreeText: fushaTitle,
+      degree: fushaTitle,
+      subtitle: `${fushaTitle} · Bachelor · 3 vite`,
+      sub_title: `${fushaTitle} · Bachelor · 3 vite`,
+      header_subtitle: `${fushaTitle} · Bachelor · 3 vite`,
+      levelText: `Bachelor · 3 vite`,
+      semestri: form.semestri,
+      referenca: id,
+      mesazhi: fullMessage,
+    };
+
     emailjs
-      .send(
-        'service_yfe3p6i',
-        'template_vgk55c2',
-        {
-          emri: form.emri,
-          mbiemri: form.mbiemri,
-          email: form.email,
-          telefoni: form.telefoni,
-          qyteti: form.qyteti,
-          shkolla: form.shkolla,
-          mesatarja: form.mesatarja,
-          fusha: fushaTitle,
-          fushaTitle: fushaTitle,
-          fusha_studimit: fushaTitle,
-          programi: fushaTitle,
-          programi_studimit: fushaTitle,
-          drejtimi: fushaTitle,
-          drejtim: fushaTitle,
-          dega: fushaTitle,
-          degë: fushaTitle,
-          degreeText: fushaTitle,
-          degree: fushaTitle,
-          subtitle: `${fushaTitle} · Bachelor · 3 vite`,
-          sub_title: `${fushaTitle} · Bachelor · 3 vite`,
-          header_subtitle: `${fushaTitle} · Bachelor · 3 vite`,
-          levelText: `Bachelor · 3 vite`,
-          semestri: form.semestri,
-          referenca: id,
-          mesazhi: fullMessage,
-        },
-        'uuepEO5vRdX5iQflg'
-      )
+      .send('service_yfe3p6i', 'template_a5c8kzu', templateParams, 'uuepEO5vRdX5iQflg')
+      .catch(() => emailjs.send('service_yfe3p6i', 'template_vgk55c2', templateParams, 'uuepEO5vRdX5iQflg'))
       .then(() => {
         setSubmitted(true);
         setError('');
       })
       .catch(() => {
-        // Even if EmailJS fails, fallback gracefully to Mailto & show submission status
         setSubmitted(true);
         setError('');
       });
