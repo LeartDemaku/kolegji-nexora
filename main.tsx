@@ -1415,21 +1415,6 @@ function AplikimiPage() {
     const fushaObj = studyPrograms.find((p) => p.id === form.fusha);
     const fushaTitle = fushaObj ? fushaObj.title : form.fusha;
 
-    const fullMessage = [
-      `FUSHA E ZGJEDHUR E STUDIMIT: ${fushaTitle.toUpperCase()}`,
-      `--------------------------------------------------`,
-      `Emri & Mbiemri: ${form.emri} ${form.mbiemri}`,
-      `Email: ${form.email}`,
-      `Telefoni: ${form.telefoni}`,
-      `Qyteti: ${form.qyteti}`,
-      `Shkolla: ${form.shkolla}`,
-      `Mesatarja: ${form.mesatarja}`,
-      `Semestri i preferuar: ${form.semestri}`,
-      `--------------------------------------------------`,
-      `Mesazh shtesë:`,
-      form.mesazhi || 'Aplikim i ri për ' + fushaTitle,
-    ].join('\n');
-
     const templateParams = {
       emri: form.emri,
       mbiemri: form.mbiemri,
@@ -1455,7 +1440,7 @@ function AplikimiPage() {
       levelText: `Bachelor · 3 vite`,
       semestri: form.semestri,
       referenca: id,
-      mesazhi: fullMessage,
+      mesazhi: form.mesazhi || '-',
     };
 
     emailjs
