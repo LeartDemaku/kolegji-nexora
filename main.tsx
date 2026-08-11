@@ -1624,40 +1624,168 @@ function AplikimiPage() {
   );
 }
 
+type TuitionPlan = {
+  id: FieldKey;
+  title: string;
+  badge: string;
+  gradient: string;
+  glow: string;
+  yearlyPrice: number;
+  monthlyPrice: number;
+  installments: number;
+  icon: React.ComponentType<{ className?: string }>;
+  features: string[];
+};
+
+const tuitionPlans: TuitionPlan[] = [
+  {
+    id: 'shkenca-kompjuterike',
+    title: 'Shkenca Kompjuterike',
+    badge: 'Software & IT',
+    gradient: 'from-sky-400 to-cyan-300',
+    glow: 'shadow-sky-500/20',
+    yearlyPrice: 1350,
+    monthlyPrice: 150,
+    installments: 9,
+    icon: Laptop,
+    features: [
+      '26 Lëndë akademike 3-vjeçare',
+      'Laboratorë modernë të programimit',
+      'Modul AI, Cloud, DevOps & Siguri',
+      'Mentorship teknik & Capstone Project',
+      'Qendra e Karrierës & Praktikë',
+    ],
+  },
+  {
+    id: 'dizajn-grafik',
+    title: 'Dizajn Grafik & UI/UX',
+    badge: 'Visual & Digital Art',
+    gradient: 'from-pink-400 to-rose-300',
+    glow: 'shadow-pink-500/20',
+    yearlyPrice: 1170,
+    monthlyPrice: 130,
+    installments: 9,
+    icon: Palette,
+    features: [
+      '26 Lëndë akademike 3-vjeçare',
+      'Mjetet e dizajnit (Adobe & Figma)',
+      'Studio për UI/UX, Motion & Modelim 3D',
+      'Portofol digjital profesional',
+      'Praktikë profesionale në Studio Dizajni',
+    ],
+  },
+  {
+    id: 'marketing',
+    title: 'Marketing Digjital & Biznes',
+    badge: 'Growth & Strategy',
+    gradient: 'from-amber-400 to-yellow-300',
+    glow: 'shadow-amber-500/20',
+    yearlyPrice: 900,
+    monthlyPrice: 100,
+    installments: 9,
+    icon: Megaphone,
+    features: [
+      '26 Lëndë akademike 3-vjeçare',
+      'Fushata në Meta, Google & TikTok Ads',
+      'Trajnime SEO, Copywriting & E-Commerce',
+      'Analitikë digjitale & Growth Hacking',
+      'Praktikë profesionale në Agjenci Marketingu',
+    ],
+  },
+];
+
 function TarifatPage() {
   return (
     <section id="tarifat" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <SectionHeading
         eyebrow="Tarifat & bursat"
-        title="Informacion financiar i qartë"
-        description="Tarifa vlen njësoj për të tria fushat e studimit bachelor (Shkenca Kompjuterike, Dizajn Grafik, Marketing Digjital)."
+        title="Planifikim financiar i qartë sipas fushës"
+        description="Shikoni tarifat vjetore, këstet mujore dhe përfitimet për secilën nga 3 fushat tona akademike të nivelit Bachelor (3-vjeçare)."
       />
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      {/* 3 Major Tuition Pricing Cards Grid */}
+      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+        {tuitionPlans.map((plan) => {
+          const Icon = plan.icon;
+          return (
+            <TiltCard
+              key={plan.id}
+              className="p-7 flex flex-col justify-between border-white/10 hover:border-white/25 transition-all duration-300"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${plan.gradient} text-slate-950 font-bold shadow-lg ${plan.glow}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300 font-medium">
+                    {plan.badge}
+                  </span>
+                </div>
+
+                <h3 className="mt-5 text-2xl font-bold text-white">{plan.title}</h3>
+                <div className="mt-1 text-xs text-slate-400">Bachelor · 3 vite · 26 lëndë</div>
+
+                {/* Price Display */}
+                <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold text-white">{plan.yearlyPrice.toLocaleString()} €</span>
+                    <span className="text-sm font-medium text-slate-400">/ vit</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between border-t border-white/8 pt-3 text-sm">
+                    <span className="text-slate-400">Kësti mujor (9 këste):</span>
+                    <span className="font-bold text-cyan-300">{plan.monthlyPrice} € / muaj</span>
+                  </div>
+                </div>
+
+                {/* Features List */}
+                <div className="mt-6 space-y-3">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Çfarë përfshihet:</div>
+                  {plan.features.map((feat) => (
+                    <div key={feat} className="flex items-start gap-3 text-sm text-slate-300">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-300" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/10">
+                <a
+                  href={`${navHash('aplikimi')}?fusha=${plan.id}`}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 hover:-translate-y-0.5 shadow-lg shadow-white/10"
+                >
+                  Apliko për këtë fushë
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+            </TiltCard>
+          );
+        })}
+      </div>
+
+      {/* Scholarships & Financial Highlights */}
+      <div className="mt-12 grid gap-6 lg:grid-cols-3">
         <GlassCard className="p-7 lg:col-span-2">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-5">
-              <div className="text-sm text-slate-400">Tarifa vjetore</div>
-              <div className="mt-2 text-3xl font-semibold text-white">1,350 €</div>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-200">
+              <Sparkles className="h-5 w-5" />
             </div>
-            <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-5">
-              <div className="text-sm text-slate-400">Kësti mujor</div>
-              <div className="mt-2 text-3xl font-semibold text-white">150 €</div>
-            </div>
-            <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-5">
-              <div className="text-sm text-slate-400">Numri i kësteve</div>
-              <div className="mt-2 text-3xl font-semibold text-white">9 këste</div>
+            <div>
+              <div className="text-lg font-semibold text-white">Avantazhet financiare dhe lehtësirat</div>
+              <div className="text-sm text-slate-400">Strukturë e fleksibile pagesash për çdo student</div>
             </div>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+
+          <div className="grid gap-3 sm:grid-cols-2">
             {[
-              'Tarifë vjetore e njëjtë për të 3 fushat',
-              'Pagesë fleksibile me 9 këste mujore',
-              'Bursa për notë mesatare të lartë',
-              'Zbritje për anëtarë të të njëjtës familje',
+              'Pagesë fleksibile me 9 këste mujore pa asnjë kamatë',
+              'Bursa meritore për studentët me sukses të lartë akademik',
+              'Zbritje prej 10% për dy apo më shumë anëtarë të familjes',
+              'Transparencë e plotë pa asnjë tarifë të fshehur gjatë vitit',
             ].map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-                {item}
+              <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-cyan-300" />
+                <span>{item}</span>
               </div>
             ))}
           </div>
