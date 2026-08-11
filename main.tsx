@@ -1107,15 +1107,31 @@ function SemesterCard({ sem, index, isOpen, onToggle }: { sem: Semester; index: 
 }
 
 function ProgramPage() {
-  // Support default field selection via state or query parameter
-  const [selectedField, setSelectedField] = useState<FieldKey>(() => {
-    if (typeof window !== 'undefined') {
+  const [selectedField, setSelectedField] = useState<FieldKey>('shkenca-kompjuterike');
+
+  useEffect(() => {
+    const parseUrlField = () => {
+      if (typeof window === 'undefined') return;
+      let f: FieldKey | null = null;
       const search = new URLSearchParams(window.location.search);
-      const f = search.get('fusha') as FieldKey;
-      if (f && studyPrograms.some((p) => p.id === f)) return f;
-    }
-    return 'shkenca-kompjuterike';
-  });
+      f = search.get('fusha') as FieldKey | null;
+
+      if (!f && window.location.hash.includes('fusha=')) {
+        const parts = window.location.hash.split('fusha=');
+        if (parts[1]) {
+          f = parts[1].split('&')[0] as FieldKey;
+        }
+      }
+
+      if (f && studyPrograms.some((p) => p.id === f)) {
+        setSelectedField(f);
+      }
+    };
+
+    parseUrlField();
+    window.addEventListener('hashchange', parseUrlField);
+    return () => window.removeEventListener('hashchange', parseUrlField);
+  }, []);
 
   const currentProg = useMemo(
     () => studyPrograms.find((p) => p.id === selectedField) || studyPrograms[0],
@@ -1146,6 +1162,9 @@ function ProgramPage() {
               onClick={() => {
                 setSelectedField(prog.id);
                 setOpenSem('sem1');
+                if (typeof window !== 'undefined') {
+                  window.location.hash = `programi?fusha=${prog.id}`;
+                }
               }}
               className={cx(
                 'flex-1 flex items-center justify-center gap-3 rounded-2xl border px-6 py-4 font-semibold transition text-left',
