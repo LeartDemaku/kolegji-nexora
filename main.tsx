@@ -488,24 +488,25 @@ function useMouseParallax() {
 function buildApplicationMailto(form: AdmissionForm, reference: string) {
   const fushaObj = studyPrograms.find((p) => p.id === form.fusha);
   const fushaTitle = fushaObj ? fushaObj.title : form.fusha;
-  const subject = encodeURIComponent(`Aplikim i ri - ${collegeName} - ${reference}`);
+  const subject = encodeURIComponent(`Aplikim i ri (${fushaTitle}) - ${collegeName} - ${reference}`);
   const body = encodeURIComponent(
     [
-      `Kolegji: ${collegeName}`,
+      `KOLEGJI NEXORA - FORMULARI I APLIKIMIT`,
+      `FUSHA E ZGJEDHUR E STUDIMIT: ${fushaTitle.toUpperCase()}`,
       `Referenca: ${reference}`,
-      `Fusha e zgjedhur: ${fushaTitle}`,
-      '',
+      `==================================================`,
       `Emri: ${form.emri}`,
       `Mbiemri: ${form.mbiemri}`,
       `Email: ${form.email}`,
       `Telefoni: ${form.telefoni}`,
       `Qyteti: ${form.qyteti}`,
       `Shkolla e mesme: ${form.shkolla}`,
-      `Mesatarja: ${form.mesatarja}`,
+      `Mesatarja e notave: ${form.mesatarja}`,
+      `Fusha e zgjedhur: ${fushaTitle}`,
       `Semestri i preferuar: ${form.semestri}`,
       `Dokumentet e konfirmuara: ${form.dokumente ? 'Po' : 'Jo'}`,
       `Deklarata e pranuar: ${form.deklarata ? 'Po' : 'Jo'}`,
-      '',
+      `==================================================`,
       'Mesazh shtesë:',
       form.mesazhi || '-',
     ].join('\n')
@@ -1367,6 +1368,26 @@ function AplikimiPage() {
   const [reference, setReference] = useState('');
 
   useEffect(() => {
+    const parseUrlField = () => {
+      if (typeof window === 'undefined') return;
+      const search = new URLSearchParams(window.location.search);
+      let queryFusha = search.get('fusha') as FieldKey | null;
+      if (!queryFusha && window.location.hash.includes('fusha=')) {
+        const parts = window.location.hash.split('fusha=');
+        if (parts[1]) {
+          queryFusha = parts[1].split('&')[0] as FieldKey;
+        }
+      }
+      if (queryFusha && studyPrograms.some((p) => p.id === queryFusha)) {
+        setForm((prev) => ({ ...prev, fusha: queryFusha! }));
+      }
+    };
+    parseUrlField();
+    window.addEventListener('hashchange', parseUrlField);
+    return () => window.removeEventListener('hashchange', parseUrlField);
+  }, []);
+
+  useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(form));
   }, [form]);
 
@@ -1407,6 +1428,21 @@ function AplikimiPage() {
     const fushaObj = studyPrograms.find((p) => p.id === form.fusha);
     const fushaTitle = fushaObj ? fushaObj.title : form.fusha;
 
+    const fullMessage = [
+      `FUSHA E ZGJEDHUR E STUDIMIT: ${fushaTitle.toUpperCase()}`,
+      `--------------------------------------------------`,
+      `Emri & Mbiemri: ${form.emri} ${form.mbiemri}`,
+      `Email: ${form.email}`,
+      `Telefoni: ${form.telefoni}`,
+      `Qyteti: ${form.qyteti}`,
+      `Shkolla: ${form.shkolla}`,
+      `Mesatarja: ${form.mesatarja}`,
+      `Semestri i preferuar: ${form.semestri}`,
+      `--------------------------------------------------`,
+      `Mesazh shtesë:`,
+      form.mesazhi || 'Aplikim i ri për ' + fushaTitle,
+    ].join('\n');
+
     emailjs
       .send(
         'service_yfe3p6i',
@@ -1420,8 +1456,12 @@ function AplikimiPage() {
           shkolla: form.shkolla,
           mesatarja: form.mesatarja,
           fusha: fushaTitle,
+          programi: fushaTitle,
+          drejtimi: fushaTitle,
+          dega: fushaTitle,
+          semestri: form.semestri,
           referenca: id,
-          mesazhi: form.mesazhi || '-',
+          mesazhi: fullMessage,
         },
         'uuepEO5vRdX5iQflg'
       )
@@ -1452,7 +1492,7 @@ function AplikimiPage() {
           <div className="mt-1 text-sm text-slate-400">Ju lutem plotësoni fushat me kujdes.</div>
 
           <form onSubmit={onSubmit} className="mt-6 grid gap-5">
-            {/* Zgjedhësi i fushës së studimit */}
+            {/* Zgjedhësi i fushës së studimit (Kartela + Dropdown Sync) */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
                 Zgjidh Fushën e Studimit (Bachelor) *
@@ -1467,14 +1507,17 @@ function AplikimiPage() {
                       type="button"
                       onClick={() => update('fusha', p.id)}
                       className={cx(
-                        'flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition',
+                        'flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition relative overflow-hidden',
                         isSelected
-                          ? 'border-cyan-400/60 bg-cyan-400/10 shadow-lg shadow-cyan-500/10 text-white'
+                          ? 'border-cyan-400/80 bg-cyan-400/15 shadow-lg shadow-cyan-500/20 text-white'
                           : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
                       )}
                     >
-                      <div className={cx('flex h-8 w-8 items-center justify-center rounded-xl', isSelected ? 'bg-cyan-400 text-slate-950 font-bold' : 'bg-white/10 text-slate-300')}>
-                        <Icon className="h-4 w-4" />
+                      <div className="flex items-center justify-between w-full">
+                        <div className={cx('flex h-8 w-8 items-center justify-center rounded-xl', isSelected ? 'bg-cyan-400 text-slate-950 font-bold' : 'bg-white/10 text-slate-300')}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        {isSelected && <BadgeCheck className="h-4 w-4 text-cyan-300" />}
                       </div>
                       <div>
                         <div className="text-xs font-bold leading-tight">{p.title}</div>
@@ -1483,6 +1526,20 @@ function AplikimiPage() {
                     </button>
                   );
                 })}
+              </div>
+
+              <div className="mt-3">
+                <select
+                  value={form.fusha}
+                  onChange={(e) => update('fusha', e.target.value as FieldKey)}
+                  className="input-field font-semibold text-cyan-200 border-cyan-400/30 bg-slate-900"
+                >
+                  {studyPrograms.map((p) => (
+                    <option key={p.id} value={p.id} className="bg-slate-900 text-white">
+                      🎓 Fusha e zgjedhur: {p.title} (26 Lëndë)
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
