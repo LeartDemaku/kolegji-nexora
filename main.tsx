@@ -22,6 +22,7 @@ import {
   Laptop,
   Layers3,
   LibraryBig,
+  Loader2,
   Mail,
   MapPin,
   Megaphone,
@@ -1370,6 +1371,7 @@ function AplikimiPage() {
     }
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [reference, setReference] = useState('');
 
@@ -1430,6 +1432,7 @@ function AplikimiPage() {
     const id = `AN-${Date.now().toString().slice(-6)}`;
     setReference(id);
     setError('');
+    setLoading(true);
 
     const fushaObj = studyPrograms.find((p) => p.id === form.fusha);
     const fushaTitle = fushaObj ? fushaObj.title : form.fusha;
@@ -1467,10 +1470,12 @@ function AplikimiPage() {
       .catch(() => emailjs.send('service_yfe3p6i', 'template_vgk55c2', templateParams, 'uuepEO5vRdX5iQflg'))
       .then(() => {
         setSubmitted(true);
+        setLoading(false);
         setError('');
       })
       .catch(() => {
         setSubmitted(true);
+        setLoading(false);
         setError('');
       });
   }
@@ -1591,11 +1596,29 @@ function AplikimiPage() {
             ) : null}
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:bg-slate-100">
-                Dërgo aplikimin
-                <Send className="h-4 w-4" />
+              <button
+                type="submit"
+                disabled={loading}
+                className={cx(
+                  'inline-flex items-center justify-center gap-2.5 rounded-2xl px-7 py-3.5 font-semibold text-slate-950 transition-all duration-200 shadow-lg shadow-white/10',
+                  loading
+                    ? 'bg-slate-300 cursor-wait opacity-90'
+                    : 'bg-white hover:bg-slate-100 hover:-translate-y-0.5 active:translate-y-0'
+                )}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin text-slate-950" />
+                    <span>Po dërgohet aplikimi...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Dërgo aplikimin</span>
+                    <Send className="h-4 w-4" />
+                  </>
+                )}
               </button>
-              <button type="button" onClick={resetForm} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10">
+              <button type="button" onClick={resetForm} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10">
                 Fshij draftin
               </button>
             </div>
@@ -1882,6 +1905,7 @@ function StudentLifePage() {
 function ContactPage() {
   const [form, setForm] = useState<ContactForm>({ emri: '', email: '', tema: '', mesazhi: '' });
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   function update<K extends keyof ContactForm>(key: K, value: ContactForm[K]) {
@@ -1896,6 +1920,7 @@ function ContactPage() {
       return;
     }
     setError('');
+    setLoading(true);
     try {
       const res = await fetch('https://formspree.io/f/mredwzlj', {
         method: 'POST',
@@ -1915,6 +1940,8 @@ function ContactPage() {
       }
     } catch {
       setError('Gabim gjatë dërgimit. Provoni përsëri.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -1978,9 +2005,27 @@ function ContactPage() {
             <textarea value={form.mesazhi} onChange={(e) => update('mesazhi', e.target.value)} placeholder="Mesazhi juaj" rows={6} className="input-field resize-none" />
             {error ? <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">{error}</div> : null}
             {success ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-200">Mesazhi u dërgua me sukses.</div> : null}
-            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:bg-slate-100">
-              Dërgo mesazhin
-              <Send className="h-4 w-4" />
+            <button
+              type="submit"
+              disabled={loading}
+              className={cx(
+                'inline-flex items-center justify-center gap-2.5 rounded-2xl px-6 py-3.5 font-semibold text-slate-950 transition-all duration-200 shadow-lg shadow-white/10',
+                loading
+                  ? 'bg-slate-300 cursor-wait opacity-90'
+                  : 'bg-white hover:bg-slate-100 hover:-translate-y-0.5 active:translate-y-0'
+              )}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
+                  <span>Po dërgohet mesazhi...</span>
+                </>
+              ) : (
+                <>
+                  <span>Dërgo mesazhin</span>
+                  <Send className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
         </GlassCard>
