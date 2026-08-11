@@ -44,6 +44,7 @@ import {
 type PageKey =
   | 'ballina'
   | 'programi'
+  | 'rreth-nesh'
   | 'pranimet'
   | 'aplikimi'
   | 'tarifat'
@@ -115,6 +116,7 @@ const storageKey = 'nexora-admission-draft';
 const navigation: Array<{ key: PageKey; label: string }> = [
   { key: 'ballina', label: 'Ballina' },
   { key: 'programi', label: 'Programet' },
+  { key: 'rreth-nesh', label: 'Rreth Nesh' },
   { key: 'pranimet', label: 'Pranimet' },
   { key: 'aplikimi', label: 'Aplikimi' },
   { key: 'tarifat', label: 'Tarifat' },
@@ -1296,6 +1298,156 @@ function ProgramPage() {
   );
 }
 
+function AboutUsPage() {
+  return (
+    <section id="rreth-nesh" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <SectionHeading
+        eyebrow="Pasioni për Arsimin Digjital"
+        title="Rreth Kolegjit Nexora"
+        description="Institucion i arsimit të lartë i fokusuar ekskluzivisht në 3 fushat më elitare dhe më të kërkuara digjitale: Shkenca Kompjuterike, Dizajn Grafik & UI/UX, dhe Marketing Digjital & Biznes."
+      />
+
+      {/* Mission & Vision Grid */}
+      <div className="mt-10 grid gap-6 md:grid-cols-2">
+        <GlassCard className="p-8 relative overflow-hidden">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/15 text-cyan-300 font-bold mb-5">
+            <Target className="h-6 w-6" />
+          </div>
+          <h3 className="text-2xl font-bold text-white">Misioni Ynë</h3>
+          <p className="mt-3 text-sm leading-7 text-slate-300">
+            Të ofrojmë arsimin më elitar akademik 3-vjeçar bachelor përmes 26 lëndëve të certifikuara për secilën fushë, ku 70% e mësimdhënies zhvillohet në laboratorë me projekte reale industriale, duke garantuar punësim të menjëhershëm për secilin absolvent.
+          </p>
+        </GlassCard>
+
+        <GlassCard className="p-8 relative overflow-hidden">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-400/15 text-pink-300 font-bold mb-5">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <h3 className="text-2xl font-bold text-white">Vizioni Ynë</h3>
+          <p className="mt-3 text-sm leading-7 text-slate-300">
+            Të jemi qendra kryesore akademike dhe e inovacionit teknologjik në Kosovë dhe rajon, ku diploma njihet ndërkombëtarisht dhe studentët tanë shndërrohen në liderë softuerikë, dizajnerë vizionarë dhe drejtues të marketingut digjital.
+          </p>
+        </GlassCard>
+      </div>
+
+      {/* 4 Core Pillars */}
+      <div className="mt-12">
+        <div className="text-center mb-8">
+          <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Vlerat Akademike</span>
+          <h3 className="mt-1 text-2xl font-bold text-white sm:text-3xl">4 Shtyllat e Ekselencës në Nexora</h3>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              icon: Code2,
+              title: '70% Praktikë Reale',
+              desc: 'Mësimdhënie e bazuar në projekte reale me mjetet më moderne teknologjike.',
+              color: 'text-sky-400 bg-sky-400/10 border-sky-400/20',
+            },
+            {
+              icon: Users,
+              title: 'Mentorë nga Industria',
+              desc: 'Ligjërues dhe mentore me përvojë direkte në kompanitë më të mëdha softuerike.',
+              color: 'text-pink-400 bg-pink-400/10 border-pink-400/20',
+            },
+            {
+              icon: ShieldCheck,
+              title: 'Areditim & Certifikime',
+              desc: 'Kurrikula me 26 lëndë per drejtim të lidhura me certifikime ndërkombëtare.',
+              color: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+            },
+            {
+              icon: TrendingUp,
+              title: '96% Punësim i Garantuar',
+              desc: 'Qendër e specializuar e karrierës që ndërmjetëson punësimin brenda 6 muajve.',
+              color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+            },
+          ].map((col) => {
+            const Icon = col.icon;
+            return (
+              <GlassCard key={col.title} className="p-6">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${col.color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h4 className="mt-4 text-lg font-bold text-white">{col.title}</h4>
+                <p className="mt-2 text-xs leading-5 text-slate-400">{col.desc}</p>
+              </GlassCard>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Leadership & Key Faculty */}
+      <div className="mt-16">
+        <SectionHeading
+          eyebrow="Ekipi Akademik & Mentorët"
+          title="Ligjërues nga industria softuerike dhe digjitale"
+          description="Stafi ynë përbëhet nga PhD dhe ekspertë me përvojë shumëvjeçare në inxhinieri softuerike, dizajn UI/UX dhe marketing strategjik."
+        />
+
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              name: 'Prof. Dr. Arben Gashi',
+              role: 'Dekan i Shkencave Kompjuterike',
+              spec: 'Ekspert i AI & Cloud Architecture (Ex-Lead Dev)',
+              badge: 'Shkenca Kompjuterike',
+            },
+            {
+              name: 'Msc. Elena Hoxha',
+              role: 'Drejtuese e Departamentit të Dizajnit',
+              spec: 'UI/UX Lead & Art Director me 10+ vite përvojë',
+              badge: 'Dizajn Grafik & UI/UX',
+            },
+            {
+              name: 'Msc. Driton Kelmendi',
+              role: 'Krerë i Marketingut Digjital',
+              spec: 'Growth Strategist & Meta/Google Certified Specialist',
+              badge: 'Marketing Digjital',
+            },
+            {
+              name: 'Ing. Sara Berisha',
+              role: 'Ligjëruese e Programimit & AI',
+              spec: 'Full Stack Engineer & Data Scientist',
+              badge: 'Shkenca Kompjuterike',
+            },
+          ].map((member) => (
+            <GlassCard key={member.name} className="p-6">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-sky-500 text-slate-950 font-bold text-xl mb-4 shadow-lg shadow-cyan-500/20">
+                {member.name.split(' ').map((n) => n[0]).join('')}
+              </div>
+              <div className="text-xs font-semibold text-cyan-300 mb-1">{member.badge}</div>
+              <h4 className="text-lg font-bold text-white">{member.name}</h4>
+              <div className="text-xs font-medium text-slate-300 mt-1">{member.role}</div>
+              <p className="mt-3 text-xs leading-5 text-slate-400">{member.spec}</p>
+            </GlassCard>
+          ))}
+        </div>
+      </div>
+
+      {/* Partner Companies Showcase */}
+      <div className="mt-16 rounded-3xl border border-white/10 bg-slate-900/60 p-8 sm:p-10">
+        <div className="text-center max-w-2xl mx-auto">
+          <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Partnerët e Karrierës</span>
+          <h3 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Kompanitë ku zhvillohet praktika dhe punësimi</h3>
+          <p className="mt-2 text-sm text-slate-400">
+            Studentët e të 3 drejtimeve kryejnë praktikën 6-mujore të obligueshme në kompanitë më prestigjioze të teknologjisë dhe agjencitë digjitale.
+          </p>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-slate-300 font-bold text-sm">
+          {['Gjirafa', 'Solaborate', 'Kutia', 'Manaferra', 'Zebra Creative', 'Trembel', 'KosovoIT', 'DevFactory'].map((partner) => (
+            <div key={partner} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 transition hover:border-cyan-400/40 hover:text-white">
+              🏢 {partner}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PranimetPage() {
   return (
     <section id="pranimet" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -2202,6 +2354,8 @@ export default function App() {
         return <HomePage />;
       case 'programi':
         return <ProgramPage />;
+      case 'rreth-nesh':
+        return <AboutUsPage />;
       case 'pranimet':
         return <PranimetPage />;
       case 'aplikimi':
