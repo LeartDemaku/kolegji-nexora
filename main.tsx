@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import emailjs from '@emailjs/browser';
 import './index.css';
 
@@ -434,8 +435,8 @@ function navHash(page: PageKey) {
 }
 
 function pageFromHash(hash: string): PageKey {
-  const key = hash.replace('#', '') as PageKey;
-  return navigation.some((item) => item.key === key) ? key : 'ballina';
+  const clean = hash.replace('#', '').split('?')[0] as PageKey;
+  return navigation.some((item) => item.key === clean) ? clean : 'ballina';
 }
 
 function cx(...parts: Array<string | false | null | undefined>) {
@@ -2011,5 +2012,14 @@ export default function App() {
         <Footer />
       </div>
     </div>
+  );
+}
+
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  createRoot(rootElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
   );
 }
