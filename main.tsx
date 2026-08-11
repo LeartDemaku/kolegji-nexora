@@ -1389,25 +1389,25 @@ function AboutUsPage() {
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
-              name: 'Prof. Dr. Arben Gashi',
+              name: 'Dr. Sc. Arben Gashi',
               role: 'Dekan i Shkencave Kompjuterike',
-              spec: 'Ekspert i AI & Cloud Architecture (Ex-Lead Dev)',
+              spec: 'Ekspert i Shkencave Kompjuterike & AI (Ex-Lead Dev)',
               badge: 'Shkenca Kompjuterike',
             },
             {
-              name: 'Msc. Elena Hoxha',
+              name: 'Dr. Sc. Elena Hoxha',
               role: 'Drejtuese e Departamentit të Dizajnit',
               spec: 'UI/UX Lead & Art Director me 10+ vite përvojë',
               badge: 'Dizajn Grafik & UI/UX',
             },
             {
-              name: 'Msc. Driton Kelmendi',
-              role: 'Krerë i Marketingut Digjital',
+              name: 'Dr. Sc. Driton Kelmendi',
+              role: 'Krerë i Marketingut Digjital & Biznesit',
               spec: 'Growth Strategist & Meta/Google Certified Specialist',
-              badge: 'Marketing Digjital',
+              badge: 'Marketing Digjital & Biznes',
             },
             {
-              name: 'Ing. Sara Berisha',
+              name: 'MSc. Sara Berisha',
               role: 'Ligjëruese e Programimit & AI',
               spec: 'Full Stack Engineer & Data Scientist',
               badge: 'Shkenca Kompjuterike',
@@ -1437,7 +1437,7 @@ function AboutUsPage() {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-slate-300 font-bold text-sm">
-          {['Gjirafa', 'Solaborate', 'Kutia', 'Manaferra', 'Zebra Creative', 'Trembel', 'KosovoIT', 'DevFactory'].map((partner) => (
+          {['Qubit KS', 'Gjirafa', 'Ukites by PBC', 'Kore.co', 'Comodita Home', 'Neptun Kosova', 'Solaborate', 'Kutia', 'Manaferra', 'Zebra Creative', 'Trembel', 'KosovoIT', 'DevFactory'].map((partner) => (
             <div key={partner} className="rounded-2xl border border-white/10 bg-white/5 px-5 py-2.5 transition hover:border-cyan-400/40 hover:text-white">
               🏢 {partner}
             </div>
